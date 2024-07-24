@@ -1,3 +1,5 @@
+// src/components/viewers/CartViewer.tsx
+
 import React from 'react';
 import MenuItemCard from '../cards/MenuItemCard';
 

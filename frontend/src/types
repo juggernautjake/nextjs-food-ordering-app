@@ -1,0 +1,6 @@
+// src/types/react-geocode.d.ts
+
+declare module 'react-geocode' {
+  export function setApiKey(apiKey: string): void;
+  export function fromAddress(address: string): Promise<{ results: { geometry: { location: { lat: number, lng: number } } }[] }>;
+}

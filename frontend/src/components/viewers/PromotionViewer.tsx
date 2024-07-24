@@ -8,19 +8,18 @@ type Promotion = {
   title: string;
   description: string;
   discount: number;
-  // Add other fields as necessary
 };
 
 interface PromotionViewerProps {
   promotions: Promotion[];
 }
 
-const PromotionViewer: React.FC<PromotionViewerProps> = ({ promotions }) => {
+const PromotionViewer: React.FC<PromotionViewerProps> = ({ promotions = [] }) => {
   return (
     <div className="promotion-viewer">
-      <h2>Promotions</h2>
+      <h2 className="text-2xl font-bold">Promotions</h2>
       {promotions.length > 0 ? (
-        promotions.map(promotion => (
+        promotions.map((promotion) => (
           <PromotionCard key={promotion.id} promotion={promotion} />
         ))
       ) : (

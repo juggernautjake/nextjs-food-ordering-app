@@ -1,0 +1,90 @@
+/* styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.restaurant-list-page {
+  background-image: url('http://localhost:1337/uploads/fork-and-spoon-icon-vector.jpg');
+  background-repeat: repeat;
+  background-size: 142px 142px;
+  background-attachment: fixed;
+  background-color: white;
+  border-radius: 16px;
+}
+
+.header {
+  border-bottom: 8px solid #6A0DAD;
+  position: relative;
+  z-index: 10;
+  background-color: #333; /* Updated for better contrast */
+}
+
+.header-background {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background-color: #6A0DAD;
+  z-index: 1;
+}
+
+.page-container {
+  background-color: #78d28e;
+}
+
+.page-container.bg-green {
+  background-color: #78d28e;
+}
+
+.search-bar {
+  border: 2px solid #6A0DAD;
+  border-radius: 16px;
+}
+
+.cart-container {
+  position: fixed;
+  right: 0;
+  top: 0;
+  margin-top: 1rem;
+  margin-right: 1rem;
+  z-index: 50;
+}
+
+.cart-container .relative {
+  z-index: 50;
+}
+
+.cart-container .fixed {
+  z-index: 50;
+}
+
+.cart-container button {
+  position: relative;
+  z-index: 50;
+}
+
+.cart-container .fixed-content {
+  position: fixed;
+  right: 1rem;
+  top: 5rem;
+  z-index: 50;
+  background-color: #1a202c;
+  border-radius: 1.5rem;
+  max-width: 20rem;
+  padding: 1.5rem;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.text-dark {
+  color: #000; /* Updated to ensure contrast */
+}
+
+.text-white {
+  color: #fff; /* Ensuring readability */
+}

@@ -1,14 +1,21 @@
 // src/components/layout/Footer.tsx
 
 import React from 'react';
+import Link from 'next/link';
 
-const Footer = () => (
-  <footer>
+const Footer: React.FC = () => (
+  <footer className="footer">
     <p>&copy; 2024 Your Company</p>
     <nav>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/contact">Contact</a>
+      <Link href="/terms" legacyBehavior>
+        <a className="mx-2 text-white">Terms</a>
+      </Link>
+      <Link href="/privacy" legacyBehavior>
+        <a className="mx-2 text-white">Privacy</a>
+      </Link>
+      <Link href="/contact" legacyBehavior>
+        <a className="mx-2 text-white">Contact</a>
+      </Link>
     </nav>
   </footer>
 );
