@@ -1,26 +1,34 @@
 // src/components/viewers/CartViewer.tsx
 
 import React from 'react';
-import MenuItemCard from '../cards/MenuItemCard';
 
-type Item = {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
+interface CartItem {
+  id: string;
+  attributes: {
+    price: number;
+  };
+  quantity?: number;
+}
+
+interface CartViewerProps {
+  items: CartItem[];
+}
+
+const CartViewer: React.FC<CartViewerProps> = ({ items }) => {
+  return (
+    <div>
+      {items.length === 0 ? (
+        <p>Your cart is empty</p>
+      ) : (
+        items.map((item) => (
+          <div key={item.id}>
+            <p>{item.attributes.price}</p>
+            <p>{item.quantity}</p>
+          </div>
+        ))
+      )}
+    </div>
+  );
 };
-
-type CartViewerProps = {
-  items: Item[];
-};
-
-const CartViewer: React.FC<CartViewerProps> = ({ items }) => (
-  <div className="cart-viewer">
-    <h2>Cart Items</h2>
-    {items.map((item) => (
-      <MenuItemCard key={item.id} item={item} />
-    ))}
-  </div>
-);
 
 export default CartViewer;

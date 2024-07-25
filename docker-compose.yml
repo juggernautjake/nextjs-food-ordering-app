@@ -7,9 +7,10 @@ services:
       - '3000:3000'
     volumes:
       - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=100
 
   strapi:
     build: ./backend
@@ -17,14 +18,15 @@ services:
       - '1337:1337'
     volumes:
       - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
     environment:
-      DATABASE_CLIENT: postgres
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
-      DATABASE_NAME: strapi_db
-      DATABASE_USERNAME: strapi_user
-      DATABASE_PASSWORD: strapi_password
+      - DATABASE_CLIENT=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=strapi_db
+      - DATABASE_USERNAME=strapi_user
+      - DATABASE_PASSWORD=strapi_password
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=100
     depends_on:
       - db
 
@@ -33,13 +35,11 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_DB: strapi_db
-      POSTGRES_USER: strapi_user
-      POSTGRES_PASSWORD: strapi_password
+      - POSTGRES_DB=strapi_db
+      - POSTGRES_USER=strapi_user
+      - POSTGRES_PASSWORD=strapi_password
     volumes:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
-  frontend_node_modules:
-  backend_node_modules:

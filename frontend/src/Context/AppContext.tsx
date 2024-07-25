@@ -2,9 +2,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import Cookie from 'js-cookie';
-import { ApolloClient, InMemoryCache, createHttpLink, useMutation, gql } from "@apollo/client";
-import { setContext } from '@apollo/client/link/context';
-import { onError } from '@apollo/client/link/error';
+import { useMutation, useApolloClient } from "@apollo/client";
 import useCart from "../hooks/useCart";
 import { GET_USER_PROFILE, ADD_FAVORITE, REMOVE_FAVORITE } from "../utils/queries";
 
@@ -35,58 +33,13 @@ interface AppState {
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:1337";
-
-const httpLink = createHttpLink({
-  uri: `${API_URL}/graphql`,
-});
-
-const authLink = setContext((_, { headers }) => {
-  const token = Cookie.get('token');
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
-
-const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) =>
-      console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
-    );
-  }
-  if (networkError) {
-    console.log(`[Network error]: ${networkError}`);
-  }
-});
-
-const client = new ApolloClient({
-  link: errorLink.concat(authLink.concat(httpLink)),
-  cache: new InMemoryCache({
-    typePolicies: {
-      Restaurant: {
-        keyFields: ["id"],
-      },
-    },
-  }),
-  defaultOptions: {
-    mutate: {
-      errorPolicy: "all",
-    },
-    query: {
-      errorPolicy: "all",
-    },
-  },
-});
-
 const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
   const { cart, addItem, removeItem, resetCart } = useCart();
   const [user, setUser] = useState<User | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [accordionState, setAccordionState] = useState<any>({});
   const [userProfileData, setUserProfileData] = useState<any>(null);
+  const client = useApolloClient();
 
   const [addFavorite] = useMutation(ADD_FAVORITE, {
     refetchQueries: [{ query: GET_USER_PROFILE, variables: { id: user?.id } }],
@@ -102,7 +55,7 @@ const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
       if (!token) return;
 
       try {
-        const userData = await getUser(token);
+        const userData = await getUser(token, client);
         setUser(userData);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -171,17 +124,9 @@ const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
   );
 };
 
-const getUser = async (token: string) => {
+const getUser = async (token: string, client: any) => {
   const { data } = await client.query({
-    query: gql`
-      query {
-        me {
-          id
-          email
-          username
-        }
-      }
-    `,
+    query: GET_USER_PROFILE,
     context: {
       headers: {
         Authorization: `Bearer ${token}`,
