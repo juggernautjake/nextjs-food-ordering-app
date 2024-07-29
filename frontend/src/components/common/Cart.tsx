@@ -2,20 +2,15 @@ import React from 'react';
 import { useAppContext } from "../../context/AppContext";
 import { useRouter } from "next/router";
 import { centsToDollars } from "../../utils/centsToDollars";
+import { Cart as CartType, CartItem as CartItemType } from "../../hooks/useCart";
 
 interface CartItemProps {
-  data: {
-    quantity: number;
-    attributes: {
-      name: string;
-      price: number;
-    };
-  };
+  data: CartItemType;
 }
 
 const CartItem: React.FC<CartItemProps> = ({ data }) => {
   const { addItem, removeItem } = useAppContext();
-  const { quantity, attributes } = data;
+  const { id, quantity, attributes } = data;
 
   return (
     <div className="p-4 flex flex-wrap justify-between border-b border-blueGray-800">
@@ -23,7 +18,7 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
         <div className="flex flex-col h-full">
           <h6 className="font-bold text-white mb-1">{attributes.name}</h6>
           <span className="block pb-4 mb-auto font-medium text-gray-400">
-            {quantity} x ${centsToDollars(attributes.price * 100)}
+            {quantity} x ${centsToDollars(attributes.price)}
           </span>
         </div>
       </div>
@@ -44,7 +39,7 @@ const CartItem: React.FC<CartItemProps> = ({ data }) => {
             </button>
           </div>
           <span className="block mt-2 text-sm font-bold text-white">
-            ${centsToDollars(attributes.price * quantity * 100)}
+            ${centsToDollars(attributes.price * quantity)}
           </span>
         </div>
       </div>
@@ -57,7 +52,7 @@ const Cart: React.FC = () => {
   const { user, cart, showCart, setShowCart } = useAppContext();
   const total = cart.total;
   const displayTotal = Math.abs(total);
-  const cartItemCount = cart.items.reduce((acc: number, item: any) => acc + item.quantity, 0);
+  const cartItemCount = cart.items.reduce((acc: number, item: CartItemType) => acc + item.quantity, 0);
 
   const loginRedirect = () => {
     router.push("/login");
@@ -106,9 +101,9 @@ const Cart: React.FC = () => {
               </div>
               <div>
                 {cart.items
-                  ? cart.items.map((item: any, index: number) => {
+                  ? cart.items.map((item: CartItemType) => {
                       if (item.quantity > 0) {
-                        return <CartItem key={index} data={item} />;
+                        return <CartItem key={item.id} data={item} />;
                       }
                       return null;
                     })

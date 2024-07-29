@@ -1,0 +1,127 @@
+FROM alpine:3.20
+
+# Create postgres user and directory
+RUN set -eux; \
+    addgroup -g 70 -S postgres; \
+    adduser -u 70 -S -D -G postgres -H -h /var/lib/postgresql -s /bin/sh postgres; \
+    mkdir -p /var/lib/postgresql; \
+    chown -R postgres:postgres /var/lib/postgresql
+
+# Install dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    dpkg \
+    gnupg \
+    gettext \
+    musl-locales \
+    musl-locales-lang \
+    llvm15-dev \
+    clang15 \
+    bison \
+    coreutils \
+    dpkg-dev dpkg \
+    flex \
+    g++ \
+    gcc \
+    krb5-dev \
+    libc-dev \
+    libedit-dev \
+    libxml2-dev \
+    libxslt-dev \
+    linux-headers \
+    make \
+    openldap-dev \
+    openssl-dev \
+    perl-dev \
+    perl-ipc-run \
+    perl-utils \
+    python3-dev \
+    tcl-dev \
+    util-linux-dev \
+    zlib-dev \
+    icu-dev \
+    lz4-dev \
+    zstd-dev
+
+# Install gosu
+ENV GOSU_VERSION 1.17
+RUN set -eux; \
+    wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64"; \
+    chmod +x /usr/local/bin/gosu; \
+    gosu --version; \
+    gosu nobody true
+
+# Setup PostgreSQL
+ENV PG_MAJOR 16
+ENV PG_VERSION 16.3
+ENV PG_SHA256 331963d5d3dc4caf4216a049fa40b66d6bcb8c730615859411b9518764e60585
+
+RUN set -eux; \
+    wget -O postgresql.tar.bz2 "https://ftp.postgresql.org/pub/source/v$PG_VERSION/postgresql-$PG_VERSION.tar.bz2"; \
+    echo "$PG_SHA256 *postgresql.tar.bz2" | sha256sum -c -; \
+    mkdir -p /usr/src/postgresql; \
+    tar --extract --file postgresql.tar.bz2 --directory /usr/src/postgresql --strip-components 1; \
+    rm postgresql.tar.bz2; \
+    cd /usr/src/postgresql; \
+    awk '$1 == "#define" && $2 == "DEFAULT_PGSOCKET_DIR" && $3 == "\"/tmp\"" { $3 = "\"/var/run/postgresql\""; print; next } { print }' src/include/pg_config_manual.h > src/include/pg_config_manual.h.new; \
+    grep '/var/run/postgresql' src/include/pg_config_manual.h.new; \
+    mv src/include/pg_config_manual.h.new src/include/pg_config_manual.h; \
+    gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
+    export LLVM_CONFIG="/usr/lib/llvm15/bin/llvm-config"; \
+    export CLANG=clang-15; \
+    ./configure \
+        --enable-option-checking=fatal \
+        --build="$gnuArch" \
+        --enable-integer-datetimes \
+        --enable-thread-safety \
+        --enable-tap-tests \
+        --disable-rpath \
+        --with-uuid=e2fs \
+        --with-pgport=5433 \
+        --with-system-tzdata=/usr/share/zoneinfo \
+        --prefix=/usr/local \
+        --with-includes=/usr/local/include \
+        --with-libraries=/usr/local/lib \
+        --with-gssapi \
+        --with-ldap \
+        --with-tcl \
+        --with-perl \
+        --with-python \
+        --with-openssl \
+        --with-libxml \
+        --with-libxslt \
+        --with-icu \
+        --with-llvm \
+        --with-lz4 \
+        --with-zstd \
+    ; \
+    make -j "$(nproc)" world-bin; \
+    make install-world-bin; \
+    make -C contrib install
+
+# Finish setup
+RUN set -eux; \
+    cd /; \
+    rm -rf /usr/src/postgresql; \
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/local/share/postgresql/postgresql.conf.sample; \
+    sed -ri "s!^#?(port)\s*=\s*\S+.*!\1 = 5433!" /usr/local/share/postgresql/postgresql.conf.sample; \
+    mkdir -p /var/run/postgresql; \
+    chown -R postgres:postgres /var/run/postgresql; \
+    chmod 2777 /var/run/postgresql; \
+    mkdir -p /var/lib/postgresql/data; \
+    chown -R postgres:postgres /var/lib/postgresql/data; \
+    chmod 700 /var/lib/postgresql/data; \
+    mkdir -p /docker-entrypoint-initdb.d; \
+    chown -R postgres:postgres /docker-entrypoint-initdb.d
+
+ENV PGDATA /var/lib/postgresql/data
+VOLUME /var/lib/postgresql/data
+
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+STOPSIGNAL SIGINT
+EXPOSE 5433
+CMD ["postgres"]

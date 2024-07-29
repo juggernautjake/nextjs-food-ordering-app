@@ -1,5 +1,3 @@
-// src/components/layout/Header.tsx
-
 import React from 'react';
 import Link from 'next/link';
 import { useAppContext } from '../../context/AppContext';
@@ -11,12 +9,12 @@ const Header: React.FC = () => {
     <header className="header">
       <div className="header-background"></div>
       <nav className="flex justify-between p-6">
-        <Link href="/" legacyBehavior>
-          <a className="text-2xl font-bold text-white">Food Order App</a>
+        <Link href="/" className="text-2xl font-bold text-white">
+          Food Order App
         </Link>
         <div className="flex items-center">
-          <Link href="/" legacyBehavior>
-            <a className="mx-2 text-white">Home</a>
+          <Link href="/" className="mx-2 text-white">
+            Home
           </Link>
           {user ? (
             <>
@@ -24,17 +22,17 @@ const Header: React.FC = () => {
               {user.hasRestaurant && (
                 <span className="mx-2 text-white">Manage Your Restaurant</span>
               )}
-              <Link href="/profile" legacyBehavior>
-                <a className="mx-2 text-white">Profile</a>
+              <Link href="/profile" className="mx-2 text-white">
+                Profile
               </Link>
             </>
           ) : (
             <>
-              <Link href="/login" legacyBehavior>
-                <a className="mx-2 text-white">Login</a>
+              <Link href="/login" className="mx-2 text-white">
+                Login
               </Link>
-              <Link href="/register" legacyBehavior>
-                <a className="mx-2 text-white">Register</a>
+              <Link href="/register" className="mx-2 text-white">
+                Register
               </Link>
             </>
           )}

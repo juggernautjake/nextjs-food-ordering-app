@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import Cookie from "js-cookie";
 
-interface CartItem {
+export interface CartItem {
   id: string;
+  quantity: number;
   attributes: {
+    name: string;
     price: number;
   };
-  quantity?: number;
 }
 
-interface Cart {
+export interface Cart {
   items: CartItem[];
   total: number;
 }
@@ -23,32 +24,32 @@ const useCart = () => {
   }, [cart]);
 
   const addItem = (item: CartItem) => {
-    let newItem = cart.items.find((i) => i.id === item.id);
-    if (!newItem) {
-      newItem = { ...item, quantity: 1 };
+    const existingItem = cart.items.find((i) => i.id === item.id);
+    if (!existingItem) {
+      const newItem = { ...item, quantity: 1 };
       setCart((prevCart) => ({
-        items: [...prevCart.items, newItem as CartItem],
-        total: prevCart.total + item.attributes.price * 100,
+        items: [...prevCart.items, newItem],
+        total: prevCart.total + item.attributes.price,
       }));
     } else {
       setCart((prevCart) => ({
-        items: prevCart.items.map((i) => (i.id === newItem!.id ? { ...i, quantity: (i.quantity || 0) + 1 } : i)),
-        total: prevCart.total + item.attributes.price * 100,
+        items: prevCart.items.map((i) => (i.id === existingItem.id ? { ...i, quantity: i.quantity + 1 } : i)),
+        total: prevCart.total + item.attributes.price,
       }));
     }
   };
 
   const removeItem = (item: CartItem) => {
-    let newItem = cart.items.find((i) => i.id === item.id);
-    if (newItem && newItem.quantity && newItem.quantity > 1) {
+    const existingItem = cart.items.find((i) => i.id === item.id);
+    if (existingItem && existingItem.quantity > 1) {
       setCart((prevCart) => ({
-        items: prevCart.items.map((i) => (i.id === newItem!.id ? { ...i, quantity: (i.quantity || 0) - 1 } : i)),
-        total: prevCart.total - item.attributes.price * 100,
+        items: prevCart.items.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i)),
+        total: prevCart.total - item.attributes.price,
       }));
     } else {
       setCart((prevCart) => ({
         items: prevCart.items.filter((i) => i.id !== item.id),
-        total: prevCart.total - item.attributes.price * 100,
+        total: prevCart.total - item.attributes.price,
       }));
     }
   };

@@ -8,12 +8,17 @@ const ContactForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Implement form submission logic
+  };
+
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} />
       <EmailInput label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <TextInput label="Message" value={message} onChange={(e) => setMessage(e.target.value)} />
-      <PrimaryButton onClick={() => {}}>Send</PrimaryButton>
+      <PrimaryButton type="submit">Send</PrimaryButton>
     </form>
   );
 };

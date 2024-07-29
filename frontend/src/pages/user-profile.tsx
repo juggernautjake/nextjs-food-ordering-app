@@ -1,4 +1,5 @@
 import ProfileForm from '../components/forms/ProfileForm';
+import React from 'react';
 
 const UserProfilePage = () => (
   <div>

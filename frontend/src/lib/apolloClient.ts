@@ -1,5 +1,3 @@
-// src/lib/apolloClient.ts
-
 import { ApolloClient, InMemoryCache, HttpLink, from, NormalizedCacheObject } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { setContext } from '@apollo/client/link/context';
@@ -13,11 +11,11 @@ const httpLink = new HttpLink({
   uri: process.env.NEXT_PUBLIC_API_URL + '/graphql',
 });
 
-const authLink = setContext((request, previousContext) => {
+const authLink = setContext((_, { headers }) => {
   const token = Cookie.get('token');
   return {
     headers: {
-      ...previousContext.headers,
+      ...headers,
       authorization: token ? `Bearer ${token}` : '',
     },
   };
@@ -25,12 +23,13 @@ const authLink = setContext((request, previousContext) => {
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) =>
-      console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
-    );
+    graphQLErrors.forEach(() => {
+      // Use a logging service in production instead of console.log
+      // console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+    });
   }
   if (networkError) {
-    console.log(`[Network error]: ${networkError}`);
+    // console.log(`[Network error]: ${networkError}`);
   }
 });
 
@@ -48,8 +47,12 @@ export const initializeApollo = (initialState: NormalizedCacheObject | null = nu
   if (initialState) {
     const existingCache = _apolloClient.extract();
     const data = merge(initialState, existingCache, {
-      arrayMerge: (destinationArray: any[], sourceArray: any[]) =>
-        sourceArray.concat(destinationArray.filter((d) => sourceArray.every((s) => !isEqual(d, s)))),
+      arrayMerge: (destinationArray, sourceArray) => [
+        ...sourceArray,
+        ...destinationArray.filter((d) =>
+          sourceArray.every((s) => !isEqual(d, s))
+        ),
+      ],
     });
     _apolloClient.cache.restore(data);
   }
@@ -60,7 +63,7 @@ export const initializeApollo = (initialState: NormalizedCacheObject | null = nu
   return _apolloClient;
 };
 
-export const useApollo = (initialState: any) => {
+export const useApollo = (initialState: NormalizedCacheObject) => {
   const store = initializeApollo(initialState);
   return store;
 };

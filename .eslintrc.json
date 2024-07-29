@@ -1,0 +1,25 @@
+{
+    "root": true,
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "rules": {
+      "no-console": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn"],
+      "@typescript-eslint/no-explicit-any": "warn"
+    },
+    "ignorePatterns": ["node_modules/", "dist/", ".next/", "build/"],
+    "overrides": [
+      {
+        "files": ["frontend/**/*.ts", "frontend/**/*.tsx"],
+        "extends": ["./frontend/.eslintrc.json"]
+      },
+      {
+        "files": ["backend/**/*.js", "backend/**/*.ts"],
+        "extends": ["./backend/.eslintrc.json"]
+      }
+    ]
+  }

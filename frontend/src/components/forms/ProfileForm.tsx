@@ -8,12 +8,17 @@ const ProfileForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
+  const handleUpdate = () => {
+    // Implement profile update logic here
+    console.log('Update profile:', { username, email, phoneNumber });
+  };
+
   return (
-    <form>
+    <form onSubmit={(e) => e.preventDefault()}>
       <TextInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
       <EmailInput label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <TextInput label="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-      <PrimaryButton onClick={() => {}}>Update</PrimaryButton>
+      <PrimaryButton onClick={handleUpdate}>Update</PrimaryButton>
     </form>
   );
 };

@@ -1,45 +1,94 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  frontend:
-    build: ./frontend
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     ports:
-      - '3000:3000'
+      - '5433:5433'
     volumes:
-      - ./frontend:/usr/src/app
+      - pgdata:/var/lib/postgresql/data
+      - ./certs:/var/lib/postgresql/certs:ro
+      - ./postgresql_conf/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./postgresql_conf/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      - CHOKIDAR_INTERVAL=100
+      POSTGRES_DB: restaurant_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Applesauce@127
+      PGPORT: 5433
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d restaurant_db -p 5433"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
-  strapi:
-    build: ./backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
     ports:
       - '1337:1337'
     volumes:
       - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./certs:/usr/src/app/certs
+    env_file:
+      - .env.docker
     environment:
-      - DATABASE_CLIENT=postgres
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_NAME=strapi_db
-      - DATABASE_USERNAME=strapi_user
-      - DATABASE_PASSWORD=strapi_password
-      - CHOKIDAR_USEPOLLING=true
-      - CHOKIDAR_INTERVAL=100
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: db
+      DATABASE_PORT: 5433
+      DATABASE_NAME: restaurant_db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: Applesauce@127
+      NODE_ENV: development
+      DATABASE_SSL: 'true'
+      DATABASE_SSL_REJECT_UNAUTHORIZED: 'false'
+      SSL_KEY_PATH: /usr/src/app/certs/myapp.local-key.pem
+      SSL_CERT_PATH: /usr/src/app/certs/myapp.local.pem
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    command: npm run develop
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks:
+      - app-network
 
-  db:
-    image: postgres:15
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
     ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_DB=strapi_db
-      - POSTGRES_USER=strapi_user
-      - POSTGRES_PASSWORD=strapi_password
+      - '3000:3000'
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./certs:/usr/src/app/certs
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: https://myapp.local:1337
+      PORT: 3000
+      SSL_KEY_PATH: /usr/src/app/certs/myapp.local-key.pem
+      SSL_CERT_PATH: /usr/src/app/certs/myapp.local.pem
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - app-network
 
 volumes:
   pgdata:
+
+networks:
+  app-network:
+    driver: bridge

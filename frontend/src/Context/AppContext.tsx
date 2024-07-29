@@ -1,8 +1,6 @@
-// src/context/AppContext.tsx
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import Cookie from 'js-cookie';
-import { useMutation, useApolloClient } from "@apollo/client";
+import { useMutation, useApolloClient, ApolloClient } from "@apollo/client";
 import useCart from "../hooks/useCart";
 import { GET_USER_PROFILE, ADD_FAVORITE, REMOVE_FAVORITE } from "../utils/queries";
 
@@ -16,18 +14,32 @@ interface User {
   hasRestaurant: boolean;
 }
 
+interface Cart {
+  items: CartItem[];
+  total: number;
+}
+
+interface CartItem {
+  id: string;
+  quantity: number;
+  attributes: {
+    name: string;
+    price: number;
+  };
+}
+
 interface AppState {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  cart: any;
-  addItem: any;
-  removeItem: any;
-  resetCart: any;
+  cart: Cart;
+  addItem: (item: CartItem) => void;
+  removeItem: (item: CartItem) => void;
+  resetCart: () => void;
   showCart: boolean;
   setShowCart: React.Dispatch<React.SetStateAction<boolean>>;
-  accordionState: any;
-  setAccordionState: React.Dispatch<React.SetStateAction<any>>;
-  userProfileData: any;
+  accordionState: Record<string, boolean>;
+  setAccordionState: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  userProfileData: any; // TODO: Define a more specific type
   handleFavoriteToggle: (restaurantId: string, isFavorite: boolean) => Promise<boolean>;
 }
 
@@ -37,7 +49,7 @@ const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
   const { cart, addItem, removeItem, resetCart } = useCart();
   const [user, setUser] = useState<User | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [accordionState, setAccordionState] = useState<any>({});
+  const [accordionState, setAccordionState] = useState<Record<string, boolean>>({});
   const [userProfileData, setUserProfileData] = useState<any>(null);
   const client = useApolloClient();
 
@@ -58,45 +70,50 @@ const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
         const userData = await getUser(token, client);
         setUser(userData);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("Error fetching user data:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (user) {
       client.query({ query: GET_USER_PROFILE, variables: { id: user.id } })
-        .then((result: any) => {
+        .then((result) => {
           setUserProfileData(result.data);
         })
-        .catch((error: any) => {
+        .catch((error) => {
+          // eslint-disable-next-line no-console
           console.error("Error fetching user profile data:", error);
         });
     }
-  }, [user]);
+  }, [user, client]);
 
   const handleFavoriteToggle = async (restaurantId: string, isFavorite: boolean) => {
+    if (!user) return isFavorite;
+
     try {
       if (isFavorite) {
         await removeFavorite({
           variables: {
-            userId: user!.id,
+            userId: user.id,
             restaurantId: restaurantId,
           },
         });
       } else {
         await addFavorite({
           variables: {
-            userId: user!.id,
+            userId: user.id,
             restaurantId: restaurantId,
           },
         });
       }
-      const { data } = await client.query({ query: GET_USER_PROFILE, variables: { id: user!.id } });
+      const { data } = await client.query({ query: GET_USER_PROFILE, variables: { id: user.id } });
       setUserProfileData(data);
       return !isFavorite;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error toggling favorite:", error);
       return isFavorite;
     }
@@ -124,7 +141,7 @@ const AppContextProvider: React.FC<AppContextProps> = ({ children }) => {
   );
 };
 
-const getUser = async (token: string, client: any) => {
+const getUser = async (token: string, client: ApolloClient<unknown>) => {
   const { data } = await client.query({
     query: GET_USER_PROFILE,
     context: {

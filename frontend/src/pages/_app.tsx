@@ -1,5 +1,4 @@
-// src/pages/_app.tsx
-
+import React from 'react'; // Add this line
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 import { AppContextProvider } from '../context/AppContext';

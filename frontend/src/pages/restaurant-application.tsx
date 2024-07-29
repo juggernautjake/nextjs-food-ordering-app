@@ -1,6 +1,7 @@
 // src/pages/restaurant-application.tsx
 
 import ApplicationForm from '../components/forms/ApplicationForm';
+import React from 'react';
 
 const RestaurantApplicationPage = () => (
   <div>

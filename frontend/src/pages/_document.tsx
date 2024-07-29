@@ -1,4 +1,4 @@
-// src/pages/_document.tsx
+import React from 'react'; // Add this line
 import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {

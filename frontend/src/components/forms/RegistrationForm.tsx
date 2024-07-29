@@ -11,16 +11,26 @@ const RegistrationForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const handleRegister = () => {
+    // Implement registration logic here
+    console.log('Register with:', { email, username, password, confirmPassword });
+  };
+
+  const handleSocialRegister = (platform: string) => {
+    // Implement social registration logic here
+    console.log('Social register with:', platform);
+  };
+
   return (
-    <form>
+    <form onSubmit={(e) => e.preventDefault()}>
       <EmailInput label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <TextInput label="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
       <PasswordInput label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
       <PasswordInput label="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-      <PrimaryButton onClick={() => {}}>Register</PrimaryButton>
-      <SocialLoginButton platform="Google" onClick={() => {}} />
-      <SocialLoginButton platform="Facebook" onClick={() => {}} />
-      <SocialLoginButton platform="LinkedIn" onClick={() => {}} />
+      <PrimaryButton onClick={handleRegister}>Register</PrimaryButton>
+      <SocialLoginButton platform="Google" onClick={() => handleSocialRegister('Google')} />
+      <SocialLoginButton platform="Facebook" onClick={() => handleSocialRegister('Facebook')} />
+      <SocialLoginButton platform="LinkedIn" onClick={() => handleSocialRegister('LinkedIn')} />
     </form>
   );
 };
